@@ -99,7 +99,7 @@
             var formData = new FormData(document.getElementById('salesForm'));
 
             // Subir imagen al servidor
-            fetch('https://test-zkbz.onrender.com/upload', {
+            fetch('https://test-ibw1.onrender.com/upload', {
                 method: 'POST',
                 body: formData
             }).then(response => {
@@ -118,7 +118,7 @@
                         payment: formData.get('payment')
                     };
 
-                    return fetch('https://test-zkbz.onrender.com/add-url-to-sheet', {
+                    return fetch('https://test-ibw1.onrender.com/add-url-to-sheet', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
