@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Venta</title>
+    <style>
+        .hidden {
+            display: none;
+        }
+        .inline-fields {
+            display: flex;
+            gap: 10px;
+        }
+        .inline-fields label {
+            margin-right: 5px;
+        }
+        #thankYouMessage {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Formulario de Venta</h1>
+    <form enctype="multipart/form-data" id="salesForm" onsubmit="submitForm(event)">
+        <div class="inline-fields">
+            <div>
+                <label for="name">Nombre:</label>
+                <input type="text" name="name" required="">
+            </div>
+            <div>
+                <label for="surname">Apellido:</label>
+                <input name="surname" id="surname" type="text" required="">
+            </div>
+        </div>
+        <br>
+        <label for="product">¿Qué producto lleva?</label>
+        <select name="product" id="product" required="" onchange="showOptions(this.value)">
+            <option value="">Selecciona una opción</option>
+            <option value="Uniforme">Uniforme</option>
+            <option value="Gorros">Gorros</option>
+            <option value="Medias">Medias</option>
+            <option value="Accesorios">Accesorios</option>
+        </select>
+        <br><br>
+        <div class="hidden" id="uniformOptions">
+            <label for="size">Talla:</label>
+            <select name="size" id="size">
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+            </select>
+            <br><br>
+            <label for="model">Modelo:</label>
+            <input name="model" id="model" type="text">
+            <br><br>
+            <label for="quantity">Cantidad:</label>
+            <input name="quantity" id="quantity" type="number" min="1">
+            <br><br>
+            <button type="button" onclick="showPaymentOptions()">Continuar</button>
+            <br><br>
+        </div>
+        <div class="hidden" id="paymentOptions">
+            <label for="payment">Método de Pago:</label>
+            <select name="payment" id="payment">
+                <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                <option value="PayPal">PayPal</option>
+            </select>
+            <br><br>
+            <label for="file">Subir Imagen (opcional):</label>
+            <input name="file" id="file" type="file" accept="image/*">
+            <br><br>
+            <input value="Enviar Pedido" type="submit">
+        </div>
+    </form>
+    <div id="thankYouMessage">
+        <h2>¡Muchas gracias por tu pedido!</h2>
+        <p>Hemos recibido tu solicitud y nos pondremos en contacto contigo pronto.</p>
+    </div>
+    <script>
+        function showOptions(value) {
+            document.getElementById('uniformOptions').classList.add('hidden');
+            document.getElementById('paymentOptions').classList.add('hidden');
+
+            if (value === 'Uniforme') {
+                document.getElementById('uniformOptions').classList.remove('hidden');
+            }
+        }
+
+        function showPaymentOptions() {
+            document.getElementById('paymentOptions').classList.remove('hidden');
+        }
+
+        function submitForm(event) {
+            event.preventDefault();  // Evitar el envío normal del formulario
+
+            var formData = new FormData(document.getElementById('salesForm'));
+
+            // Subir imagen al servidor
+            fetch('http://localhost:3000/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                return response.json();
+            }).then(data => {
+                if (data.url) {
+                    // Ahora que tenemos la URL de la imagen, enviamos los datos a Google Sheets
+                    const dataToSend = {
+                        url: data.url,
+                        name: formData.get('name'),
+                        surname: formData.get('surname'),
+                        product: formData.get('product'),
+                        size: formData.get('size'),
+                        model: formData.get('model'),
+                        quantity: formData.get('quantity'),
+                        payment: formData.get('payment')
+                    };
+
+                    return fetch('http://localhost:3000/add-url-to-sheet', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(dataToSend)
+                    });
+                } else {
+                    throw new Error('No se recibió URL de la imagen.');
+                }
+            }).then(response => {
+                if (response.ok) {
+                    document.getElementById('salesForm').style.display = 'none';
+                    document.getElementById('thankYouMessage').style.display = 'block';
+                } else {
+                    console.error('Error al enviar datos a Google Sheets:', response);
+                }
+            }).catch(error => {
+                console.error('Error en la solicitud:', error);
+            });
+        }
+    </script>
+</body>
+</html>
