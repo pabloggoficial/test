@@ -27,7 +27,7 @@ const upload = multer({ storage: storage });
 // Ruta para subir imágenes
 app.post('/upload', upload.single('file'), (req, res) => {
     if (req.file) {
-        const fileUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`; // URL de la imagen subida
+        const fileUrl = `https://test-ibw1.onrender.com/uploads/${req.file.filename}`; // URL de la imagen subida
         res.json({ url: fileUrl });
     } else {
         res.status(400).send('No se subió ningún archivo.');
@@ -75,5 +75,5 @@ app.use('/uploads', express.static('uploads'));
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en https://test-ibw1.onrender.com`);
 });
